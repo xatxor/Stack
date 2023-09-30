@@ -5,13 +5,24 @@
 
 #define STACK_CTOR(stk) stack_ctor(stk, #stk, __LINE__, __FILE__, __func__);
 #define STACK_DUMP(stk) stack_dump(stk, #stk, __LINE__, __FILE__, __func__);
+#define STACK_VERIF(stk) stack_verif(stk, #stk, __LINE__, __FILE__, __func__);
+#define CHECK_ERR(stk, err) if (stk->status & err) printf(#err "\n");
 
 #define ELEM_F "%d"
 typedef int elem_t;
 
-enum Errors{
+enum Stack_Errors{
     OK = 0,
-    ERR = 1,
+    STACK_NULLPTR = 1 << 1,
+    DATA_NULLPTR = 1 << 2,
+    NEGATIVE_CAP = 1 << 3,
+    NEGATIVE_SIZE = 1 << 4,
+    SIZE_GREATER_CAP = 1 << 5,
+    NULL_FILE = 1 << 6,
+    NULL_LINE = 1 << 7,
+    NULL_FUNC = 1 << 8,
+    NULL_NAME = 1 << 9,
+    IMPOSSIBLE_ACTION = 1 << 10
 };
 
 struct Stack{
@@ -22,21 +33,21 @@ struct Stack{
     int line;
     const char* file;
     const char* func;
+    int status;
 };
 
-Errors stack_ctor(Stack* stk, const char* name, int line, const char* file, const char* func);
-Errors stack_dtor(Stack* stk);
-Errors stack_realloc_increase(Stack* stk);
-Errors stack_realloc_decrease(Stack* stk);
-Errors stack_realloc_nullify(elem_t* start, elem_t* finish);
-Errors push(Stack* stk, elem_t value);
-Errors pop(Stack* stk, elem_t* rtrn_value);
-Errors stack_verif(Stack* stk);
-Errors stack_dump(Stack* stk, const char* name, int line, const char* file, const char* func);
-Errors stack_print(Stack* stk);
-Errors error_manager(Errors err);
+Stack_Errors stack_ctor(Stack* stk, const char* name, int line, const char* file, const char* func);
+Stack_Errors stack_dtor(Stack* stk);
+Stack_Errors stack_realloc_increase(Stack* stk);
+Stack_Errors stack_realloc_decrease(Stack* stk);
+Stack_Errors stack_realloc_nullify(Stack* stk);
+Stack_Errors push(Stack* stk, elem_t value);
+Stack_Errors pop(Stack* stk, elem_t* rtrn_value);
+Stack_Errors stack_verif(Stack* stk, const char* name, int line, const char* file, const char* func);
+void stack_check_status(Stack* stk, const char* name, int line, const char* file, const char* func);
+Stack_Errors stack_dump(Stack* stk, const char* name, int line, const char* file, const char* func);
+Stack_Errors stack_print(Stack* stk);
 int max_int(int a, int b);
-void my_exit(Errors err);
 
 int main(void)
 {
@@ -46,23 +57,29 @@ int main(void)
     STACK_DUMP(&stk);
 
     push(&stk, 1);
-
-    STACK_DUMP(&stk);
-
     push(&stk, 2);
-
-    STACK_DUMP(&stk);
-
     push(&stk, 3);
 
     STACK_DUMP(&stk);
+
+    elem_t val = 0;
+    pop(&stk, &val);
+
+    STACK_DUMP(&stk);
+
+    pop(&stk, &val);
+
+    STACK_DUMP(&stk);
+
+    pop(&stk, &val);
+    pop(&stk, &val);
 
     stack_dtor(&stk);
 
     return 0;
 }
 
-Errors stack_ctor(Stack* stk, const char* name, int line, const char* file, const char* func)
+Stack_Errors stack_ctor(Stack* stk, const char* name, int line, const char* file, const char* func)
 {
     assert(stk);
 
@@ -74,18 +91,20 @@ Errors stack_ctor(Stack* stk, const char* name, int line, const char* file, cons
     stk->file = file;
     stk->func = func;
 
+    stk->status = 0;
+
     stk->data = (elem_t*)calloc(stk->capacity, sizeof(elem_t));
+
+    STACK_VERIF(stk);
 
     printf("stack_ctor happened!\n");
 
     return OK;
 }
 
-Errors stack_dtor(Stack* stk)
+Stack_Errors stack_dtor(Stack* stk)
 {
     assert(stk);
-
-    printf("stack_dtor started...\n");
 
     free(stk->data);
     stk->cur_size = -1;
@@ -99,107 +118,132 @@ Errors stack_dtor(Stack* stk)
     return OK;
 }
 
-Errors stack_realloc_increase(Stack* stk)
+Stack_Errors stack_realloc_increase(Stack* stk)
 {
-    stack_verif(stk);
-    printf("stack_realloc_increase happened!\n");
+    STACK_VERIF(stk);
 
-    int new_cap = max_int(stk->capacity*2, 1);
+    int old_cap = stk->capacity;
+    int new_cap = max_int(old_cap*2, 1);
 
     stk->data = (elem_t*)realloc(stk->data, new_cap*sizeof(elem_t));
-    assert(stk->data);
-    //stack_realloc_nullify(stk->data + (stk->capacity+1), stk->data + (stk->capacity*2));
     stk->capacity = new_cap;
+    stack_realloc_nullify(stk);
+
+    STACK_VERIF(stk);
+
+    printf("stack_realloc_increase happened from %d to %d!\n", old_cap, new_cap);
 
     return OK;
 }
 
-
-Errors stack_realloc_decrease(Stack* stk)
+Stack_Errors stack_realloc_decrease(Stack* stk)
 {
-    stack_verif(stk);
-    printf("stack_realloc_decrease happened!\n");
+    STACK_VERIF(stk);
 
-    int new_cap = max_int(stk->capacity/2, 1);
+    int old_cap = stk->capacity;
+    int new_cap = max_int(old_cap/2, 1);
 
     stk->data = (elem_t*)realloc(stk->data, new_cap*sizeof(elem_t));
-    assert(stk->data);
     stk->capacity = new_cap;
 
+    STACK_VERIF(stk);
+
+    printf("stack_realloc_decrease happened from %d to %d!\n", old_cap, new_cap);
+
     return OK;
 }
 
-Errors stack_realloc_nullify(elem_t* start, elem_t* finish)
+Stack_Errors stack_realloc_nullify(Stack* stk)
 {
-    while (start < finish)
-    {
-        *start = 0;
-        start++;
-    }
+    STACK_VERIF(stk);
+
+    int start = stk->cur_size;
+    int finish = stk->capacity;
+    for (int i = start; i < finish; i++)
+        stk->data[i] = 0;
+
+    STACK_VERIF(stk);
     return OK;
 }
 
-Errors push(Stack* stk, elem_t value)
+Stack_Errors push(Stack* stk, elem_t value)
 {
-    stack_verif(stk);
+    STACK_VERIF(stk);
 
     if ((stk->cur_size + 1) > stk->capacity)
-    {
-        if (Errors err = stack_realloc_increase(stk))
-            return error_manager(err);
-    }
+        stack_realloc_increase(stk);
 
     stk->data[stk->cur_size] = value;
     (stk->cur_size)++;
 
-    printf("stack_push happened!\n");
-
-    STACK_DUMP(stk);
+    printf("stack_push happened with " ELEM_F "!\n", value);
 
     return OK;
 }
 
-Errors pop(Stack* stk, elem_t* rtrn_value)
+Stack_Errors pop(Stack* stk, elem_t* rtrn_value)
 {
-    stack_verif(stk);
+    if (stk->cur_size == 0)
+        stk->status |= IMPOSSIBLE_ACTION;
 
-    if (stk->cur_size <= 0)
-    {
-        printf(!"pop is not done!: stk->cur_size <= 0!");
-            return ERR;
-    }
+    STACK_VERIF(stk);
+
     *rtrn_value = stk->data[stk->cur_size-1];
     stk->data[stk->cur_size-1] = 0;
     (stk->cur_size)--;
 
     if (stk->cur_size <= stk->capacity/4)
-    {
-        if (Errors err = stack_realloc_decrease(stk))
-            return error_manager(err);
-    }
+        stack_realloc_decrease(stk);
 
-    printf("stack_pop happened!\n");
+    printf("stack_pop happened with " ELEM_F "!\n", *rtrn_value);
 
     return OK;
 }
 
-Errors stack_verif(Stack* stk)
+Stack_Errors stack_verif(Stack* stk, const char* name, int line, const char* file, const char* func)
 {
-    assert(stk);
-    assert(stk->data);
-    assert(stk->capacity > 0);
-    assert(stk->cur_size >= 0);
-    assert(stk->file);
-    assert(stk->line);
-    assert(stk->func);
-    assert(stk->name);
+    if (!stk)                                   stk->status |= STACK_NULLPTR;
+    if (!stk->data)                             stk->status |= DATA_NULLPTR;
+    if (stk->capacity <= 0)                     stk->status |= NEGATIVE_CAP;
+    if (stk->cur_size < 0)                      stk->status |= NEGATIVE_SIZE;
+    if (stk->cur_size > stk->capacity)          stk->status |= SIZE_GREATER_CAP;
+    if (!stk->file)                             stk->status |= NULL_FILE;
+    if (!stk->line)                             stk->status |= NULL_LINE;
+    if (!stk->func)                             stk->status |= NULL_FUNC;
+    if (!stk->name)                             stk->status |= NULL_NAME;
+
+    if (stk->status != 0)
+        stack_check_status(stk, name, line, file, func);
 
     return OK;
 }
 
-Errors stack_dump(Stack* stk, const char* name, int line, const char* file, const char* func)
+void stack_check_status(Stack* stk, const char* name, int line, const char* file, const char* func)
 {
-    stack_verif(stk);
+    if (stk->status == 0)
+        return;
+    printf("\nERRORS were found:\n");
+
+    CHECK_ERR(stk, STACK_NULLPTR);
+    CHECK_ERR(stk, DATA_NULLPTR);
+    CHECK_ERR(stk, NEGATIVE_CAP);
+    CHECK_ERR(stk, NEGATIVE_SIZE);
+    CHECK_ERR(stk, SIZE_GREATER_CAP);
+    CHECK_ERR(stk, NULL_FILE);
+    CHECK_ERR(stk, NULL_LINE);
+    CHECK_ERR(stk, NULL_FUNC);
+    CHECK_ERR(stk, NULL_NAME);
+    CHECK_ERR(stk, IMPOSSIBLE_ACTION);
+
+    stack_dump(stk, name, line, file, func);
+    stack_dtor(stk);
+
+    printf("Bye!\n");
+    abort();
+}
+
+Stack_Errors stack_dump(Stack* stk, const char* name, int line, const char* file, const char* func)
+{
     printf("\nSTACK_DUMP happened!\n");
     printf("stack[%p] ", stk);
 
@@ -213,11 +257,12 @@ Errors stack_dump(Stack* stk, const char* name, int line, const char* file, cons
     printf("                capacity = %d\n", stk->capacity);
     printf("                data[%p] = \n", stk->data);
     stack_print(stk);
+
+    return OK;
 }
 
-Errors stack_print(Stack* stk)
+Stack_Errors stack_print(Stack* stk)
 {
-    stack_verif(stk);
     printf("                ");
     printf("{\n");
 
@@ -241,18 +286,6 @@ Errors stack_print(Stack* stk)
     printf("}\n");
 
     return OK;
-}
-
-Errors error_manager(Errors err)
-{
-    switch (err)
-    {
-        case ERR:
-            printf("Error code: ERR");
-            return ERR;
-        default:
-            return OK;
-    }
 }
 
 int max_int(int a, int b)
