@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "TXLib.h"
+//#include "TXLib.h"
 
 #define STACK_CTOR(stk) stack_ctor(stk, #stk, __LINE__, __FILE__, __func__);
 #define STACK_DUMP(stk) stack_dump(stk, #stk, __LINE__, __FILE__, __func__);
@@ -12,17 +12,17 @@
 typedef int elem_t;
 
 enum Stack_Errors{
-    OK = 0,
-    STACK_NULLPTR = 1 << 1,
-    DATA_NULLPTR = 1 << 2,
-    NEGATIVE_CAP = 1 << 3,
-    NEGATIVE_SIZE = 1 << 4,
-    SIZE_GREATER_CAP = 1 << 5,
-    NULL_FILE = 1 << 6,
-    NULL_LINE = 1 << 7,
-    NULL_FUNC = 1 << 8,
-    NULL_NAME = 1 << 9,
-    IMPOSSIBLE_ACTION = 1 << 10
+    OK                  = 0,
+    STACK_NULLPTR       = 1 << 1,
+    DATA_NULLPTR        = 1 << 2,
+    NEGATIVE_CAP        = 1 << 3,
+    NEGATIVE_SIZE       = 1 << 4,
+    SIZE_GREATER_CAP    = 1 << 5,
+    NULL_FILE           = 1 << 6,
+    NULL_LINE           = 1 << 7,
+    NULL_FUNC           = 1 << 8,
+    NULL_NAME           = 1 << 9,
+    IMPOSSIBLE_ACTION   = 1 << 10
 };
 
 struct Stack{
@@ -71,7 +71,6 @@ int main(void)
 
     STACK_DUMP(&stk);
 
-    pop(&stk, &val);
     pop(&stk, &val);
 
     stack_dtor(&stk);
