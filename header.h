@@ -6,8 +6,11 @@
 #define STACK_VERIF(stk) stack_verif(stk, #stk, __LINE__, __FILE__, __func__);
 #define CHECK_ERR(stk, err) if (stk->status & err) printf(#err "\n");
 
+#define CANARY_VALUE 999999
 #define ELEM_F "%d"
+#define CANARY_F "%lld" //нужны ли здесь кавычки?
 typedef int elem_t;
+typedef long long int canary_t;
 
 enum Stack_Errors{
     OK                  = 0,
@@ -20,7 +23,9 @@ enum Stack_Errors{
     NULL_LINE           = 1 << 7,
     NULL_FUNC           = 1 << 8,
     NULL_NAME           = 1 << 9,
-    IMPOSSIBLE_ACTION   = 1 << 10
+    IMPOSSIBLE_ACTION   = 1 << 10,
+    LEFT_CANARY         = 1 << 11,
+    RIGHT_CANARY        = 1 << 12
 };
 
 struct Stack{
@@ -42,6 +47,9 @@ Stack_Errors stack_realloc_nullify(Stack* stk);
 Stack_Errors push(Stack* stk, elem_t value);
 Stack_Errors pop(Stack* stk, elem_t* rtrn_value);
 Stack_Errors stack_verif(Stack* stk, const char* name, int line, const char* file, const char* func);
+canary_t* stack_get_left_canary(Stack* stk);
+canary_t* stack_get_right_canary(Stack* stk);
+Stack_Errors stack_set_canaries(Stack* stk);
 void stack_check_status(Stack* stk, const char* name, int line, const char* file, const char* func);
 Stack_Errors stack_dump(Stack* stk, const char* name, int line, const char* file, const char* func);
 Stack_Errors stack_print(Stack* stk);

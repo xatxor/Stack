@@ -11,9 +11,24 @@ Stack_Errors stack_realloc_increase(Stack* stk)
 
     int old_cap = stk->capacity;
     int new_cap = max_int(old_cap*2, 1);
-
-    stk->data = (elem_t*)realloc(stk->data, new_cap*sizeof(elem_t));
     stk->capacity = new_cap;
+
+    printf("1 stk->data = %p\n", stk->data);
+
+    stk->data = (elem_t*)stack_get_left_canary(stk);
+
+    printf("2 stk->data = %p\n", stk->data);
+
+    stk->data = (elem_t*)realloc(stk->data, 2*sizeof(canary_t) + new_cap*sizeof(elem_t));
+
+    printf("3 stk->data = %p\n", stk->data);
+
+    stk->data = (elem_t*)((char*)stk->data + sizeof(canary_t));
+
+    printf("4 stk->data = %p\n", stk->data);
+
+    stack_set_canaries(stk);
+
     stack_realloc_nullify(stk);
 
     STACK_VERIF(stk);
@@ -29,9 +44,13 @@ Stack_Errors stack_realloc_decrease(Stack* stk)
 
     int old_cap = stk->capacity;
     int new_cap = max_int(old_cap/2, 1);
-
-    stk->data = (elem_t*)realloc(stk->data, new_cap*sizeof(elem_t));
     stk->capacity = new_cap;
+
+    stk->data = (elem_t*)stack_get_left_canary(stk);
+    stk->data = (elem_t*)realloc(stk->data, 2*sizeof(canary_t) + new_cap*sizeof(elem_t));
+    stk->data = (elem_t*)((char*)stk->data + sizeof(canary_t));
+
+    stack_set_canaries(stk);
 
     STACK_VERIF(stk);
 

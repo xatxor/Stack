@@ -10,7 +10,7 @@ Stack_Errors stack_ctor(Stack* stk, const char* name, int line, const char* file
     assert(stk);
 
     stk->cur_size = 0;
-    stk->capacity = 1;
+    stk->capacity = 2;
 
     stk->name = name;
     stk->line = line;
@@ -19,7 +19,12 @@ Stack_Errors stack_ctor(Stack* stk, const char* name, int line, const char* file
 
     stk->status = 0;
 
-    stk->data = (elem_t*)calloc(stk->capacity, sizeof(elem_t));
+    stk->data = (elem_t*)realloc(stk->data, 2*sizeof(canary_t) + stk->capacity*sizeof(elem_t));
+    stk->data = (elem_t*)((char*)stk->data + sizeof(canary_t));
+
+    stack_set_canaries(stk);
+
+    stack_realloc_nullify(stk);
 
     STACK_VERIF(stk);
 
@@ -31,8 +36,9 @@ Stack_Errors stack_ctor(Stack* stk, const char* name, int line, const char* file
 Stack_Errors stack_dtor(Stack* stk)
 {
     assert(stk);
+    assert(stk->data);
 
-    free(stk->data);
+    free(stack_get_left_canary(stk));
     stk->cur_size = -1;
     stk->capacity = -1;
     stk->name = NULL;
@@ -76,4 +82,26 @@ Stack_Errors pop(Stack* stk, elem_t* rtrn_value)
     printf("stack_pop happened with " ELEM_F "!\n", *rtrn_value);
 
     return OK;
+}
+
+Stack_Errors stack_set_canaries(Stack* stk)
+{
+    *(stack_get_left_canary(stk)) = CANARY_VALUE;
+    *(stack_get_right_canary(stk)) = CANARY_VALUE;
+}
+
+canary_t* stack_get_left_canary(Stack* stk)
+{
+    assert(stk);
+    assert(stk->data);
+
+    return (canary_t*)((char*)stk->data - sizeof(canary_t));
+}
+
+canary_t* stack_get_right_canary(Stack* stk)
+{
+    assert(stk);
+    assert(stk->data);
+
+    return (canary_t*)((char*)stk->data + stk->capacity*sizeof(elem_t) + sizeof(canary_t));
 }

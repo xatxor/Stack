@@ -34,3 +34,4 @@ main.cpp.save
 *.log
 *.dmp
 main.exe.log
+*.save
