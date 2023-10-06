@@ -16,8 +16,10 @@ Stack_Errors stack_verif(Stack* stk, const char* name, int line, const char* fil
     if (!stk->line)                                         stk->status |= NULL_LINE;
     if (!stk->func)                                         stk->status |= NULL_FUNC;
     if (!stk->name)                                         stk->status |= NULL_NAME;
-    if (*(stack_get_left_canary(stk)) != CANARY_VALUE)      stk->status |= LEFT_CANARY;
-    if (*(stack_get_right_canary(stk)) != CANARY_VALUE)     stk->status |= RIGHT_CANARY;
+    if (*(stack_get_left_canary(stk)) != CANARY_VALUE)      stk->status |= LEFT_DATA_CANARY;
+    if (*(stack_get_right_canary(stk)) != CANARY_VALUE)     stk->status |= RIGHT_DATA_CANARY;
+    if (stk->left_canary != CANARY_VALUE)                   stk->status |= LEFT_STRUCT_CANARY;
+    if (stk->right_canary != CANARY_VALUE)                  stk->status |= RIGHT_STRUCT_CANARY;
 
     if (stk->status != 0)
         stack_check_status(stk, name, line, file, func);
@@ -41,13 +43,15 @@ void stack_check_status(Stack* stk, const char* name, int line, const char* file
     CHECK_ERR(stk, NULL_FUNC);
     CHECK_ERR(stk, NULL_NAME);
     CHECK_ERR(stk, IMPOSSIBLE_ACTION);
-    CHECK_ERR(stk, LEFT_CANARY);
-    CHECK_ERR(stk, RIGHT_CANARY);
+    CHECK_ERR(stk, LEFT_DATA_CANARY);
+    CHECK_ERR(stk, RIGHT_DATA_CANARY);
+    CHECK_ERR(stk, LEFT_STRUCT_CANARY);
+    CHECK_ERR(stk, RIGHT_STRUCT_CANARY);
 
     stack_dump(stk, name, line, file, func);
     stack_dtor(stk);
 
-    printf("Bye!\n");
+    printf("Sorry, Bye!\n");
     abort();
 }
 
@@ -64,6 +68,8 @@ Stack_Errors stack_dump(Stack* stk, const char* name, int line, const char* file
 
     printf("                cur_size = %d\n", stk->cur_size);
     printf("                capacity = %d\n", stk->capacity);
+    printf("                left_canary = %d\n", stk->left_canary);
+    printf("                right_canary = %d\n", stk->right_canary);
     printf("                data[%p] = \n", stk->data);
     stack_print(stk);
 
