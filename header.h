@@ -9,7 +9,7 @@
 #define EMPTY_ELEM -111
 #define CANARY_VALUE 999999
 #define ELEM_F "%d"
-#define CANARY_F "%lld" //нужны ли здесь кавычки?
+#define CANARY_F "%lld"
 typedef int elem_t;
 typedef long long int canary_t;
 

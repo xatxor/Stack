@@ -68,8 +68,8 @@ Stack_Errors stack_dump(Stack* stk, const char* name, int line, const char* file
 
     printf("                cur_size = %d\n", stk->cur_size);
     printf("                capacity = %d\n", stk->capacity);
-    printf("                left_canary = %d\n", stk->left_canary);
-    printf("                right_canary = %d\n", stk->right_canary);
+    printf("                left_canary = " CANARY_F " \n", stk->left_canary);
+    printf("                right_canary = " CANARY_F " \n", stk->right_canary);
     printf("                data[%p] = \n", stk->data);
     stack_print(stk);
 

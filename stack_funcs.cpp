@@ -18,9 +18,7 @@ Stack_Errors stack_ctor(Stack* stk, const char* name, int line, const char* file
     stk->func = func;
 
     stk->status = 0;
-    printf("ctor 1 stk->data = %p\n", stk->data);
     stk->data = (elem_t*)realloc(stk->data, 2*sizeof(canary_t) + stk->capacity*sizeof(elem_t));
-    printf("ctor 2 stk->data = %p\n", stk->data);
     stk->data = (elem_t*)((char*)stk->data + sizeof(canary_t));
 
     stack_set_data_canaries(stk);
@@ -57,7 +55,7 @@ Stack_Errors stack_dtor(Stack* stk)
 Stack_Errors push(Stack* stk, elem_t value)
 {
     STACK_VERIF(stk);
-    printf("stack_push happening... stk->right_canary = %d\n", stk->right_canary);
+    printf("stack_push happening...\n");
 
     if ((stk->cur_size + 1) > stk->capacity)
         stack_realloc_increase(stk);
@@ -65,7 +63,7 @@ Stack_Errors push(Stack* stk, elem_t value)
     stk->data[stk->cur_size] = value;
     (stk->cur_size)++;
 
-    printf("stack_push happened with " ELEM_F ", stk->right_canary = %d\n", value, stk->right_canary);
+    printf("stack_push happened with " ELEM_F " \n", value);
 
     return OK;
 }
@@ -74,7 +72,7 @@ Stack_Errors pop(Stack* stk, elem_t* rtrn_value)
 {
     if (stk->cur_size == 0)
         stk->status |= IMPOSSIBLE_ACTION;
-    printf("stack_pop happening... stk->right_canary = %d\n", stk->right_canary);
+    printf("stack_pop happening...\n");
     STACK_VERIF(stk);
 
     *rtrn_value = stk->data[stk->cur_size-1];
@@ -84,7 +82,7 @@ Stack_Errors pop(Stack* stk, elem_t* rtrn_value)
     if (stk->cur_size <= stk->capacity/4)
         stack_realloc_decrease(stk);
 
-    printf("stack_pop happened with " ELEM_F ", stk->right_canary = %d\n", *rtrn_value, stk->right_canary);
+    printf("stack_pop happened with " ELEM_F " \n", *rtrn_value);
 
     return OK;
 }
@@ -110,5 +108,5 @@ canary_t* stack_get_right_canary(Stack* stk)
     assert(stk);
     assert(stk->data);
 
-    return (canary_t*)((char*)stk->data + stk->capacity*sizeof(elem_t) + sizeof(canary_t));
+    return (canary_t*)((char*)stk->data + stk->capacity*sizeof(elem_t));
 }
