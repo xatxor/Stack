@@ -31,7 +31,11 @@ Stack_Errors stack_realloc_increase(Stack* stk)
     assert(stk->data);
     stack_set_data_canaries(stk);
 
+    stack_hash_update(stk);
+
     stack_realloc_nullify(stk);
+
+    stack_hash_update(stk);
 
     STACK_VERIF(stk);
 
@@ -65,6 +69,8 @@ Stack_Errors stack_realloc_decrease(Stack* stk)
 
     stack_set_data_canaries(stk);
 
+    stack_hash_update(stk);
+
     STACK_VERIF(stk);
 
     printf("stack_realloc_decrease happened from %d to %d!\n", old_cap, new_cap);
@@ -80,6 +86,8 @@ Stack_Errors stack_realloc_nullify(Stack* stk)
     int finish = stk->capacity;
     for (int i = start; i < finish; i++)
         stk->data[i] = EMPTY_ELEM;
+
+    stack_hash_update(stk);
 
     STACK_VERIF(stk);
     return OK;

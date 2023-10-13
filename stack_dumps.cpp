@@ -20,6 +20,9 @@ Stack_Errors stack_verif(Stack* stk, const char* name, int line, const char* fil
     if (*(stack_get_right_canary(stk)) != CANARY_VALUE)     stk->status |= RIGHT_DATA_CANARY;
     if (stk->left_canary != CANARY_VALUE)                   stk->status |= LEFT_STRUCT_CANARY;
     if (stk->right_canary != CANARY_VALUE)                  stk->status |= RIGHT_STRUCT_CANARY;
+    long long unsigned int cur_hash = stk->hashsum;
+    stack_hash_update(stk);
+    if (stk->hashsum != cur_hash)                           stk->status |= WRONG_HASH;
 
     if (stk->status != 0)
         stack_check_status(stk, name, line, file, func);
@@ -47,6 +50,7 @@ void stack_check_status(Stack* stk, const char* name, int line, const char* file
     CHECK_ERR(stk, RIGHT_DATA_CANARY);
     CHECK_ERR(stk, LEFT_STRUCT_CANARY);
     CHECK_ERR(stk, RIGHT_STRUCT_CANARY);
+    CHECK_ERR(stk, WRONG_HASH);
 
     stack_dump(stk, name, line, file, func);
     stack_dtor(stk);
@@ -70,6 +74,7 @@ Stack_Errors stack_dump(Stack* stk, const char* name, int line, const char* file
     printf("                capacity = %d\n", stk->capacity);
     printf("                left_canary = " CANARY_F " \n", stk->left_canary);
     printf("                right_canary = " CANARY_F " \n", stk->right_canary);
+    printf("                hashsum = %llu\n", stk->hashsum);
     printf("                data[%p] = \n", stk->data);
     stack_print(stk);
 

@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <cstring>
+
 //#include "TXLib.h"
 
 #include "header.h"
@@ -8,7 +10,7 @@
 Stack_Errors stack_ctor(Stack* stk, const char* name, int line, const char* file, const char* func)
 {
     assert(stk);
-    printf("stack_ctor happening...");
+    printf("stack_ctor happening...\n");
     stk->cur_size = 0;
     stk->capacity = 2;
 
@@ -26,7 +28,11 @@ Stack_Errors stack_ctor(Stack* stk, const char* name, int line, const char* file
     stk->left_canary = CANARY_VALUE;
     stk->right_canary = CANARY_VALUE;
 
+    stack_hash_update(stk);
+
     stack_realloc_nullify(stk);
+
+    stack_hash_update(stk);
 
     STACK_VERIF(stk);
 
@@ -46,6 +52,7 @@ Stack_Errors stack_dtor(Stack* stk)
     stk->name = NULL;
     stk->file = NULL;
     stk->func = NULL;
+    stk->hashsum = 0;
 
     printf("stack_dtor happened!\n");
 
@@ -63,6 +70,8 @@ Stack_Errors push(Stack* stk, elem_t value)
     stk->data[stk->cur_size] = value;
     (stk->cur_size)++;
 
+    stack_hash_update(stk);
+
     printf("stack_push happened with " ELEM_F " \n", value);
 
     return OK;
@@ -79,8 +88,12 @@ Stack_Errors pop(Stack* stk, elem_t* rtrn_value)
     stk->data[stk->cur_size-1] = EMPTY_ELEM;
     (stk->cur_size)--;
 
+    stack_hash_update(stk);
+
     if (stk->cur_size <= stk->capacity/4)
         stack_realloc_decrease(stk);
+
+    stack_hash_update(stk);
 
     printf("stack_pop happened with " ELEM_F " \n", *rtrn_value);
 
@@ -109,4 +122,18 @@ canary_t* stack_get_right_canary(Stack* stk)
     assert(stk->data);
 
     return (canary_t*)((char*)stk->data + stk->capacity*sizeof(elem_t));
+}
+
+Stack_Errors stack_hash_update(Stack* stk)
+{
+    stk->hashsum = 0;
+    stk->hashsum = stack_get_hash(stk);
+
+    return OK;
+}
+
+long long unsigned int stack_get_hash(Stack* stk)
+{
+    size_t d_size = 2*sizeof(canary_t) + stk->capacity*sizeof(elem_t);
+    return get_hash((char*)stk, sizeof(stk)) + get_hash((char*)stack_get_left_canary(stk), d_size);
 }

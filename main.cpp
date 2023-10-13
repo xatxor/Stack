@@ -1,4 +1,4 @@
-#include "TXLib.h"
+//#include "TXLib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -14,12 +14,11 @@ int main(void)
     push(&stk, 1);
     push(&stk, 2);
     push(&stk, 3);
+
     STACK_DUMP(&stk);
+
     elem_t val = 0;
     pop(&stk, &val);
-
-    STACK_DUMP(&stk);
-
     pop(&stk, &val);
 
     STACK_DUMP(&stk);

@@ -6,7 +6,7 @@
 #define STACK_VERIF(stk) stack_verif(stk, #stk, __LINE__, __FILE__, __func__);
 #define CHECK_ERR(stk, err) if (stk->status & err) printf(#err "\n");
 
-#define EMPTY_ELEM -111
+#define EMPTY_ELEM 0
 #define CANARY_VALUE 999999
 #define ELEM_F "%d"
 #define CANARY_F "%lld"
@@ -28,7 +28,8 @@ enum Stack_Errors{
     LEFT_DATA_CANARY    = 1 << 11,
     RIGHT_DATA_CANARY   = 1 << 12,
     LEFT_STRUCT_CANARY  = 1 << 13,
-    RIGHT_STRUCT_CANARY = 1 << 14
+    RIGHT_STRUCT_CANARY = 1 << 14,
+    WRONG_HASH          = 1 << 15
 };
 
 struct Stack{
@@ -41,6 +42,7 @@ struct Stack{
     const char* file;
     const char* func;
     int status;
+    long long unsigned int hashsum;
     canary_t right_canary;
 };
 
@@ -52,8 +54,14 @@ Stack_Errors stack_realloc_nullify(Stack* stk);
 Stack_Errors push(Stack* stk, elem_t value);
 Stack_Errors pop(Stack* stk, elem_t* rtrn_value);
 Stack_Errors stack_verif(Stack* stk, const char* name, int line, const char* file, const char* func);
+
+long long unsigned int get_hash(char* str, long long unsigned int len);
+long long unsigned int stack_get_hash(Stack* stk);
+Stack_Errors stack_hash_update(Stack* stk);
+
 canary_t* stack_get_left_canary(Stack* stk);
 canary_t* stack_get_right_canary(Stack* stk);
+
 Stack_Errors stack_set_data_canaries(Stack* stk);
 void stack_check_status(Stack* stk, const char* name, int line, const char* file, const char* func);
 Stack_Errors stack_dump(Stack* stk, const char* name, int line, const char* file, const char* func);
