@@ -22,6 +22,7 @@ Stack_Errors stack_verif(Stack* stk, const char* name, int line, const char* fil
     if (stk->right_canary != CANARY_VALUE)                  stk->status |= RIGHT_STRUCT_CANARY;
     long long unsigned int cur_hash = stk->hashsum;
     stack_hash_update(stk);
+
     if (stk->hashsum != cur_hash)                           stk->status |= WRONG_HASH;
 
     if (stk->status != 0)

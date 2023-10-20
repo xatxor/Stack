@@ -77,14 +77,15 @@ Stack_Errors push(Stack* stk, elem_t value)
     return OK;
 }
 
-Stack_Errors pop(Stack* stk, elem_t* rtrn_value)
+elem_t pop(Stack* stk)
 {
+    elem_t result = 0;
     if (stk->cur_size == 0)
         stk->status |= IMPOSSIBLE_ACTION;
     printf("stack_pop happening...\n");
     STACK_VERIF(stk);
 
-    *rtrn_value = stk->data[stk->cur_size-1];
+    result = stk->data[stk->cur_size-1];
     stk->data[stk->cur_size-1] = EMPTY_ELEM;
     (stk->cur_size)--;
 
@@ -95,9 +96,9 @@ Stack_Errors pop(Stack* stk, elem_t* rtrn_value)
 
     stack_hash_update(stk);
 
-    printf("stack_pop happened with " ELEM_F " \n", *rtrn_value);
+    printf("stack_pop happened with " ELEM_F " \n", result);
 
-    return OK;
+    return result;
 }
 
 Stack_Errors stack_set_data_canaries(Stack* stk)

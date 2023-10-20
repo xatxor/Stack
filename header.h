@@ -52,7 +52,7 @@ Stack_Errors stack_realloc_increase(Stack* stk);
 Stack_Errors stack_realloc_decrease(Stack* stk);
 Stack_Errors stack_realloc_nullify(Stack* stk);
 Stack_Errors push(Stack* stk, elem_t value);
-Stack_Errors pop(Stack* stk, elem_t* rtrn_value);
+elem_t pop(Stack* stk);
 Stack_Errors stack_verif(Stack* stk, const char* name, int line, const char* file, const char* func);
 
 long long unsigned int get_hash(char* str, long long unsigned int len);
